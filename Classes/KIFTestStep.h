@@ -561,6 +561,7 @@ typedef enum {
  */
 + (id)stepToWaitForFirstResponderWithAccessibilityLabel:(NSString *)label;
 
-+ (NSString *)_representedKeyboardStringForCharacter:(NSString *)characterString;
++ (CGPoint*)swipePathForFlick:(UIView *)viewToSwipe;
+
 
 @end
