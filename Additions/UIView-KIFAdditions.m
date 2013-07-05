@@ -80,12 +80,18 @@ typedef struct __GSEvent * GSEventRef;
 
 - (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits;
 {
+	return [self accessibilityElementWithLabel:label accessibilityValue:value traits:traits class:nil];
+}
+
+- (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
+{
     return [self accessibilityElementMatchingBlock:^(UIAccessibilityElement *element) {
         BOOL labelsMatch = [element.accessibilityLabel isEqual:label];
         BOOL traitsMatch = ((element.accessibilityTraits) & traits) == traits;
         BOOL valuesMatch = !value || [value isEqual:element.accessibilityValue];
-
-        return (BOOL)(labelsMatch && traitsMatch && valuesMatch);
+		BOOL classesMatch = !class || (element.class == class);
+		
+        return (BOOL)(labelsMatch && traitsMatch && valuesMatch && classesMatch);
     }];
 }
 
@@ -150,20 +156,57 @@ typedef struct __GSEvent * GSEventRef;
         
         // If the view is an accessibility container, and we didn't find a matching subview,
         // then check the actual accessibility elements
-        NSInteger accessibilityElementCount = element.accessibilityElementCount;
-        if (accessibilityElementCount == 0 || accessibilityElementCount == NSNotFound) {
-            continue;
-        }
-        
-        for (NSInteger accessibilityElementIndex = 0; accessibilityElementIndex < accessibilityElementCount; accessibilityElementIndex++) {
-            UIAccessibilityElement *subelement = [element accessibilityElementAtIndex:accessibilityElementIndex];
-            
-            [elementStack addObject:subelement];
-        }
+		if ([element respondsToSelector:@selector(accessibilityElementCount)]){
+			NSInteger accessibilityElementCount = [element accessibilityElementCount];
+			if (accessibilityElementCount == 0 || accessibilityElementCount == NSNotFound) {
+				continue;
+			}
+			
+			for (NSInteger accessibilityElementIndex = 0; accessibilityElementIndex < accessibilityElementCount; accessibilityElementIndex++) {
+				UIAccessibilityElement *subelement = [element accessibilityElementAtIndex:accessibilityElementIndex];
+				
+				if (subelement) {
+					[elementStack addObject:subelement];
+				}
+			}
+		}
     }
-        
+    
     return matchingButOccludedElement;
 }
+
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label
+{
+    return [self accessibilityElementWithLabelLike:label traits:UIAccessibilityTraitNone];
+}
+
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label traits:(UIAccessibilityTraits)traits;
+{
+    return [self accessibilityElementWithLabelLike:label accessibilityValue:nil traits:traits];
+}
+
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits
+{
+    return [self accessibilityElementWithLabelLike:label accessibilityValue:value traits:traits class:nil];
+}
+
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
+{
+    return [self accessibilityElementMatchingBlock:^(UIAccessibilityElement *element) {
+		NSRange substringLabelRange;
+		substringLabelRange = [[element.accessibilityLabel lowercaseString] rangeOfString:[label lowercaseString]];
+		NSRange substringIdentifierRange;
+		substringIdentifierRange = [[element.accessibilityIdentifier lowercaseString] rangeOfString:[label lowercaseString]];
+		
+		BOOL labelsMatch = ( (substringLabelRange.length > 0) ||  (substringIdentifierRange.length > 0) );
+        BOOL traitsMatch = ((element.accessibilityTraits) & traits) == traits;
+        BOOL valuesMatch = !value || [value isEqual:element.accessibilityValue];
+		BOOL classesMatch = !class || (element.class == class);
+		
+        return (BOOL)(labelsMatch && traitsMatch && valuesMatch && classesMatch);
+    }];
+}
+
 
 - (UIView *)subviewWithClassNamePrefix:(NSString *)prefix;
 {
@@ -301,6 +344,39 @@ typedef struct __GSEvent * GSEventRef;
     [touch release];
 }
 
+#define DRAG_TOUCH_DELAY 0.01
+
+- (void)longPressAtPoint:(CGPoint)point duration:(NSTimeInterval)duration
+{
+    UITouch *touch = [[UITouch alloc] initAtPoint:point inView:self];
+    [touch setPhase:UITouchPhaseBegan];
+    
+    UIEvent *eventDown = [self _eventWithTouch:touch];
+    [[UIApplication sharedApplication] sendEvent:eventDown];
+    
+    CFRunLoopRunInMode(kCFRunLoopDefaultMode, DRAG_TOUCH_DELAY, false);
+    
+    for (NSTimeInterval timeSpent = DRAG_TOUCH_DELAY; timeSpent < duration; timeSpent += DRAG_TOUCH_DELAY)
+    {
+        [touch setPhase:UITouchPhaseStationary];
+        
+        UIEvent *eventStillDown = [self _eventWithTouch:touch];
+        [[UIApplication sharedApplication] sendEvent:eventStillDown];
+        
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, DRAG_TOUCH_DELAY, false);
+    }
+    
+    [touch setPhase:UITouchPhaseEnded];
+    UIEvent *eventUp = [self _eventWithTouch:touch];
+    [[UIApplication sharedApplication] sendEvent:eventUp];
+    
+    // Dispatching the event doesn't actually update the first responder, so fake it
+    if ([touch.view isDescendantOfView:self] && [self canBecomeFirstResponder]) {
+        [self becomeFirstResponder];
+    }
+    
+    [touch release];
+}
 
 - (void)dragFromPoint:(CGPoint)startPoint toPoint:(CGPoint)endPoint;
 {
@@ -308,8 +384,6 @@ typedef struct __GSEvent * GSEventRef;
     CGPoint points[] = {startPoint, CGPointMidPoint(startPoint, endPoint), endPoint};
     [self dragAlongPathWithPoints:points count:sizeof(points) / sizeof(CGPoint)];
 }
-
-#define DRAG_TOUCH_DELAY 0.01
 
 - (void)dragAlongPathWithPoints:(CGPoint *)points count:(NSInteger)count;
 {
