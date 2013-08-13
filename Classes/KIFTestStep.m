@@ -1682,6 +1682,7 @@ typedef CGPoint KIFDisplacement;
 		} else {
 			elementFrame = [view.window convertRect:view.accessibilityFrame toView:view];
 		}
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5f, false);
 		CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
 		
 		// This is mostly redundant of the test in _accessibilityElementWithLabel:
@@ -1710,19 +1711,20 @@ typedef CGPoint KIFDisplacement;
 	UIAccessibilityElement *buttonElement = [[UIApplication sharedApplication] accessibilityElementWithLabelLike:label accessibilityValue:nil traits:UIAccessibilityTraitButton];
 	if(buttonElement != nil) {
 		UIView *buttonView = [UIAccessibilityElement viewContainingAccessibilityElement:buttonElement];
-		if(buttonView == nil) {
-			NSLog(@"Unable to find view for button: '%@'", label);
-			return KIFTestStepResultFailure;
-		}
-		
-		if (((UIButton *)buttonView).enabled) {
-			return [self tapView:buttonView];
-		} else {
-			NSLog(@"Button View %@ was not enabled, could not tap it.", label);
-			return KIFTestStepResultFailure;
+		if (buttonView.alpha > 0 || failsIfNotPresent) {
+			if(buttonView == nil) {
+				NSLog(@"Unable to find view for button: '%@'", label);
+				return KIFTestStepResultFailure;
+			}
+			
+			if (((UIButton *)buttonView).enabled) {
+				return [self tapView:buttonView];
+			} else {
+				NSLog(@"Button View %@ was not enabled, could not tap it.", label);
+				return KIFTestStepResultFailure;
+			}
 		}
 	}
-	
 	//If we get to this point, the element is not present.
 	if(failsIfNotPresent == NO) {
 		return KIFTestStepResultSuccess;
