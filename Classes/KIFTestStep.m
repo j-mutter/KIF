@@ -1710,7 +1710,7 @@ typedef CGPoint KIFDisplacement;
 	UIAccessibilityElement *buttonElement = [[UIApplication sharedApplication] accessibilityElementWithLabelLike:label accessibilityValue:nil traits:UIAccessibilityTraitButton];
 	if(buttonElement != nil) {
 		UIView *buttonView = [UIAccessibilityElement viewContainingAccessibilityElement:buttonElement];
-		if (buttonView.alpha > 0) {
+		if (buttonView.alpha > 0 || failsIfNotPresent) {
 			if(buttonView == nil) {
 				NSLog(@"Unable to find view for button: '%@'", label);
 				return KIFTestStepResultFailure;
