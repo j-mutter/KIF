@@ -110,7 +110,6 @@ MAKE_CATEGORIES_LOADABLE(UIApplication_KIFAdditions)
     return nil;
 }
 
-
 - (UIAlertView *)alertView
 {
     NSArray* windows = [[UIApplication sharedApplication] windows];
