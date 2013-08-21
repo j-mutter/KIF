@@ -13,10 +13,10 @@
 #import "KIFTestLogger.h"
 
 #import "NSFileManager-KIFAdditions.h"
+#import "UIApplication-KIFAdditions.h"
 #import <QuartzCore/QuartzCore.h>
 #import <dlfcn.h>
 #import <objc/runtime.h>
-
 
 extern id objc_msgSend(id theReceiver, SEL theSelector, ...);
 
@@ -450,7 +450,7 @@ static void releaseInstance()
         return;
     }
     
-    NSArray *windows = [[UIApplication sharedApplication] windows];
+    NSArray *windows = [[UIApplication sharedApplication] windowsWithKeyWindow];
     if (windows.count == 0) {
         return;
     }
