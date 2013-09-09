@@ -96,37 +96,35 @@ static KIFTestScenario* currentScenario = nil;
 
 - (void)logTestingDidFinish;
 {
-    NSTimeInterval totalDuration = -[self.controller.testSuiteStartDate timeIntervalSinceNow];
-    NSString* data = [NSString stringWithFormat: @"<testsuite name=\"%@\" tests=\"%d\" failures=\"%d\" time=\"%0.4f\">\n",
-                      @"KIF Tests", [self.controller.scenarios count], self.controller.failureCount, totalDuration];
-    
-    [self appendToLog:data];
-    
-    for (KIFTestScenario* scenario in self.controller.scenarios) { 
-        NSNumber* duration = [durations objectForKey: [scenario description]];
-        NSString* errorString = [errors objectForKey: [scenario description]];
-        
-        
-        NSString* scenarioSteps = [[scenario.steps valueForKeyPath:@"description"] componentsJoinedByString:@"\n"];
-		scenarioSteps = [scenarioSteps stringByEscapingStringForXML];
-        NSString* errorMsg =  (errorString ? [NSString stringWithFormat:@"<failure message=\"%@\">%@</failure>",
-                                        errorString, scenarioSteps] :
-                               @"");
+	NSTimeInterval totalDuration = -[self.controller.testSuiteStartDate timeIntervalSinceNow];
+	NSString* data = [NSString stringWithFormat: @"<testsuite name=\"%@\" tests=\"%d\" failures=\"%d\" time=\"%0.4f\">\n",
+					  @"KIF Tests", [self.controller.scenarios count], self.controller.failureCount, totalDuration];
 
-		errorMsg = [errorMsg stringByEscapingStringForXML];
-        NSString* description = [scenario description];
+	[self appendToLog:data];
+
+	for (KIFTestScenario* scenario in self.controller.scenarios) {
+		NSNumber* duration = [durations objectForKey: [scenario description]];
+		NSString* errorString = [errors objectForKey: [scenario description]];
+		errorString = [errorString stringByEscapingStringForXML];
+
+		NSString* scenarioSteps = [[scenario.steps valueForKeyPath:@"description"] componentsJoinedByString:@"\n"];
+		scenarioSteps = [scenarioSteps stringByEscapingStringForXML];
+		NSString* errorMsg =  (errorString ? [NSString stringWithFormat:@"<failure message=\"%@\">%@</failure>",
+											  errorString, scenarioSteps] :
+							   @"");
+
+		NSString* description = [scenario description];
 		description = [description stringByEscapingStringForXML];
 		NSString* classString = NSStringFromClass([scenario class]);
 		classString = [description stringByEscapingStringForXML];
-        
-        data = [NSString stringWithFormat:@"<testcase name=\"%@\" class=\"%@\" time=\"%0.4f\">%@</testcase>\n",
-                                          description, classString, [duration doubleValue], errorMsg];
-		
-		
-        [self appendToLog:data];
-    }
-        
-    [self appendToLog:@"</testsuite>\n"];
+
+		data = [NSString stringWithFormat:@"<testcase name=\"%@\" class=\"%@\" time=\"%0.4f\">%@</testcase>\n",
+				description, classString, [duration doubleValue], errorMsg];
+
+		[self appendToLog:data];
+	}
+
+	[self appendToLog:@"</testsuite>\n"];
 }
 
 - (void)logDidStartScenario:(KIFTestScenario *)scenario;
