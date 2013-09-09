@@ -105,7 +105,8 @@ static KIFTestScenario* currentScenario = nil;
     for (KIFTestScenario* scenario in self.controller.scenarios) { 
         NSNumber* duration = [durations objectForKey: [scenario description]];
         NSString* errorString = [errors objectForKey: [scenario description]];
-        
+        errorString = [errorString stringByEscapingStringForXML];
+
         
         NSString* scenarioSteps = [[scenario.steps valueForKeyPath:@"description"] componentsJoinedByString:@"\n"];
 		scenarioSteps = [scenarioSteps stringByEscapingStringForXML];
@@ -113,7 +114,6 @@ static KIFTestScenario* currentScenario = nil;
                                         errorString, scenarioSteps] :
                                @"");
 
-		errorMsg = [errorMsg stringByEscapingStringForXML];
         NSString* description = [scenario description];
 		description = [description stringByEscapingStringForXML];
 		NSString* classString = NSStringFromClass([scenario class]);
