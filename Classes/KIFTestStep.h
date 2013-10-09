@@ -9,6 +9,14 @@
 
 #import <UIKit/UIKit.h>
 
+typedef enum DragDirection
+{
+    DRAG_RIGHT = 0,
+    DRAG_LEFT = 1,
+    DRAG_UP = 2,
+    DRAG_DOWN = 3
+} DragDirection;
+
 
 /*!
  @define KIFTestCondition
@@ -23,7 +31,7 @@ if (!(condition)) { \
     if (error) { \
         *error = [NSError errorWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:__VA_ARGS__], NSLocalizedDescriptionKey, nil]]; \
     } \
-    [KIFTestStep stepFailed]; \
+    [self stepFailed]; \
     return KIFTestStepResultFailure; \
 } \
 })
@@ -195,6 +203,24 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
 + (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
 
 /*!
+ @method stepToWaitForViewWithAccessibilityLabel:value:traits:class:
+ @abstract A step that waits until a view or accessibility element is present.
+ @discussionThe view or accessibility element with the given label and class is found in the view hierarchy. If the element isn't found, then the step will attempt to wait until it is. Note that the view does not necessarily have to be visible on the screen, and may be behind another view or offscreen. Views with their hidden property set to YES are ignored.
+ 
+ If the view you want to wait for is tappable, use the -stepToWaitForTappableViewWithAccessibilityLabel: methods instead as they provide a more strict test.
+ @param label The accessibility label of the element to wait for.
+ @param value The accessibility value of the element to tap.
+ @param traits The accessibility traits of the element to wait for. Elements that do not include at least these traits are ignored.
+ @param class The class of the view to wait for.
+ @result A configured test step.
+ */
++ (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
+
++ (id)stepToWaitForViewWithAccessibilityLabelLike:(NSString *)label;
++ (id)stepToWaitForViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value;
++ (id)stepToWaitForViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
+
+/*!
  @method stepToWaitForAbsenceOfViewWithAccessibilityLabel:
  @abstract A step that waits until a view or accessibility element is no longer present.
  @discussion The view or accessibility element with the given label is found in the view hierarchy. If the element is found, then the step will attempt to wait until it isn't. Note that the view does not necessarily have to be visible on the screen, and may be behind another view or offscreen. Views with their hidden property set to YES are considered absent.
@@ -224,6 +250,9 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  */
 + (id)stepToWaitForAbsenceOfViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
 
++ (id)stepToWaitForAbsenceOfViewWithAccessibilityLabelLike:(NSString *)label;
++ (id)stepToWaitForAbsenceOfViewWithAccessibilityLabelLike:(NSString *)label traits:(UIAccessibilityTraits)traits;
++ (id)stepToWaitForAbsenceOfViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
 /*!
  @method stepToWaitForTappableViewWithAccessibilityLabel:
  @abstract A step that waits until a view or accessibility element is present and available for tapping.
@@ -253,6 +282,36 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  @result A configured test step.
  */
 + (id)stepToWaitForTappableViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
+
+/*!
+ @method stepToWaitForDisabledViewWithAccessibilityLabel:
+ @abstract A step that waits until a view or accessibility element is present and disabled.
+ @discussion The view or accessibility element with the given label is found in the view hierarchy. If the element isn't found or isn't currently disabled, then the step will attempt to wait until it is. Whether or not a view is tappable is based on -[UIView hitTest:].
+ @param label The accessibility label of the element to wait for.
+ @result A configured test step.
+ */
++ (id)stepToWaitForDisabledViewWithAccessibilityLabel:(NSString *)label;
+
+/*!
+ @method stepToWaitForDisabledViewWithAccessibilityLabel:traits:
+ @abstract A step that waits until a view or accessibility element is present and disabled.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently disabled, then the step will attempt to wait until it is. Whether or not a view is tappable is based on -[UIView hitTest:].
+ @param label The accessibility label of the element to wait for.
+ @param traits The accessibility traits of the element to wait for. Elements that do not include at least these traits are ignored.
+ @result A configured test step.
+ */
++ (id)stepToWaitForDisabledViewWithAccessibilityLabel:(NSString *)label traits:(UIAccessibilityTraits)traits;
+
+/*!
+ @method stepToWaitForDisabledViewWithAccessibilityLabel:value:traits:
+ @abstract A step that waits until a view or accessibility element is present and disabled.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently disabled, then the step will attempt to wait until it is. Whether or not a view is tappable is based on -[UIView hitTest:].
+ @param label The accessibility label of the element to wait for.
+ @param value The accessibility value of the element to tap.
+ @param traits The accessibility traits of the element to wait for. Elements that do not include at least these traits are ignored.
+ @result A configured test step.
+ */
++ (id)stepToWaitForDisabledViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
 
 /*!
  @method stepToWaitForTimeInterval:description:
@@ -317,6 +376,25 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  */
 + (id)stepToTapViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
 
++ (id)stepToTapViewWithAccessibilityLabelLike:(NSString *)label;
++ (id)stepToTapViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value;
++ (id)stepToTapViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits;
++ (id)stepToWaitForViewWithAccessibilityLabelLike:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
+
+/*!
+ @method stepToTapViewWithAccessibilityLabelLike: class:
+ @abstract A step that taps a particular view in the view hierarchy with a certain class type.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, a tap event is simulated in the center of the view or element. It also chooses based on class.
+ 
+ This variation allows finding a particular instance of an accessibility element. For example, a table view might have multiple elements with the accessibility label of "Employee", but only one that also has the accessibility value of "Bob".
+ @param label The accessibility label of the element to tap.
+ @param value The accessibility value of the element to tap.
+ @param traits The accessibility traits of the element to tap. Elements that do not include at least these traits are ignored.
+ @param class The class of the element to choose.
+ @result A configured test step.
+ */
++ (id)stepToTapViewWithAccessibilityLabelLike:(NSString *)label class:(Class)class;
+
 /*!
  @method stepToTapScreenAtPoint:
  @abstract A step that taps the screen at a particular point.
@@ -326,6 +404,53 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  @result A configured test step.
  */
 + (id)stepToTapScreenAtPoint:(CGPoint)screenPoint;
+
+/*!
+ @method stepToLongPressViewWithAccessibilityLabel:duration:
+ @abstract A step that performs a long press on a particular view in the view hierarchy.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, touch events are simulated in the center of the view or element.
+ 
+ @param label The accessibility label of the element to tap.
+ @param duration The length of time to long press the element.
+ @result A configured test step.
+ */
++ (id)stepToLongPressViewWithAccessibilityLabel:(NSString *)label duration:(NSTimeInterval)duration;
+
+/*!
+ @method stepToLongPressViewWithAccessibilityLabel:value:duration:
+ @abstract A step that performs a long press on a particular view in the view hierarchy.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, touch events are simulated in the center of the view or element.
+ 
+ This variation allows finding a particular instance of an accessibility element. For example, a table view might have multiple elements with the accessibility label of "Employee", but only one that also has the accessibility value of "Bob".
+ @param label The accessibility label of the element to tap.
+ @param value The accessibility value of the element to tap.
+ @param duration The length of time to long press the element.
+ @result A configured test step.
+ */
++ (id)stepToLongPressViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value duration:(NSTimeInterval)duration;
+
+/*!
+ @method stepToLongPressViewWithAccessibilityLabel:value:traits:duration:
+ @abstract A step that performs a long press on a particular view in the view hierarchy.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, touch events are simulated in the center of the view or element.
+ 
+ This variation allows finding a particular instance of an accessibility element. For example, a table view might have multiple elements with the accessibility label of "Employee", but only one that also has the accessibility value of "Bob".
+ @param label The accessibility label of the element to tap.
+ @param value The accessibility value of the element to tap.
+ @param traits The accessibility traits of the element to tap. Elements that do not include at least these traits are ignored.
+ @param duration The length of time to long press the element.
+ @result A configured test step.
+ */
++ (id)stepToLongPressViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits duration:(NSTimeInterval)duration;
+
+/*!
+ @method stepToEnterTextIntoCurrentFirstResponder:
+ @abstract A step that enters text into a the current first responder.
+ @discussion Text is entered into the view by simulating taps on the appropriate keyboard keys if the keyboard is already displayed. Useful to enter text in UIWebViews or components with no accessibility labels.
+ @param text The text to enter.
+ @result A configured test step.
+ */
++ (id)stepToEnterTextIntoCurrentFirstResponder:(NSString *)text;
 
 /*!
  @method stepToEnterText:intoViewWithAccessibilityLabel:
@@ -348,6 +473,13 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  @result A configured test step.
  */
 + (id)stepToEnterText:(NSString *)text intoViewWithAccessibilityLabel:(NSString *)label traits:(UIAccessibilityTraits)traits expectedResult:(NSString *)expectedResult;
+
++ (id)stepToEnterText:(NSString *)text intoViewWithAccessibilityLabelLike:(NSString *)label;
++ (id)stepToEnterText:(NSString *)text intoViewWithAccessibilityLabelLike:(NSString *)label traits:(UIAccessibilityTraits)traits expectedResult:(NSString *)expectedResult;
+
++ (id)stepToVerifyText:(NSString *)text inViewWithAccessibilityLabelLike:(NSString *)label;
+
++ (id)stepToClearTextFromViewWithAccessibilityLabel:(NSString *)label;
 
 /*!
  @method stepToSelectPickerViewRowWithTitle:
@@ -432,6 +564,17 @@ typedef enum {
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction;
 
 /*!
+ @method stepToScrollViewWithAccessibilityLabel:byFractionOfSizeHorizontal:vertical:
+ @abstract A step that scrolls a particular view in the view hierarchy by an amount indicated as a fraction of its size.
+ @discussion The view will get the view with the specified accessibility label and scroll it by the indicated fraction of its size, with the scroll centered on the center of the view.
+ @param label The accessibility label of the view to scroll.
+ @param horizontalFraction The horizontal displacement of the scroll action, as a fraction of the width of the view.
+ @param verticalFraction The vertical displacement of the scroll action, as a fraction of the height of the view.
+ @result A configured test step.
+ */
++ (id)stepToScrollViewWithAccessibilityLabel:(NSString *)label byFractionOfSizeHorizontal:(CGFloat)horizontalFraction vertical:(CGFloat)verticalFraction;
+
+/*!
  @method stepToWaitForFirstResponderWithAccessibilityLabel:
  @abstract A step that waits until a view or accessibility element is the first responder.
  @discussion The first responder is found by searching the view hierarchy of the application's
@@ -441,5 +584,124 @@ typedef enum {
  @result A configured test step.
  */
 + (id)stepToWaitForFirstResponderWithAccessibilityLabel:(NSString *)label;
+
+/*!
+ @method stepToDismissAlertViewIfPresent:
+ @abstract A step that dismisses an alert view using the Cancel button if present.
+ @param required If YES, we verify that an alert view is present before dismissing it, if NO, we just attempt to close any alert view that may be presented.
+ @result A configured test step
+ */
++ (id)stepToDismissAlertViewIfPresent:(BOOL)required;
+
+/*!
+ @method stepToDismissAlertViewWithLabel:byTappingButton:
+ @abstract A step that dismisses an alert view by tapping on the specified button.  NOTE: This may not work with system-provided alter views, such as requesting location information, etc.
+ @param label The accessibility label of the Alert View's title
+ @param buttonLabel The accessibility label of the button to tap, ie OK, Cancel, etc
+ @result A configured test step
+ */
++ (id)stepToDismissAlertViewWithLabel:(NSString *)label byTappingButton:(NSString *)buttonLabel;
+
+/*!
+@method stepToVerifyGerneralPasteboardIsEqualTo:
+@abstract A step that verifies the current contents of the general pasteboard are equal to the given string
+@param string The string to verify is in the pasteboard
+@result A configured test step
+*/
++ (id)stepToVerifyGerneralPasteboardIsEqualTo:(NSString *)string;
+
+/*!
+ @method swipePathForFlick:
+ @abstract A method to get a swipePath for flicking.
+ @discussion The swipe path is found by determining points between 2 end points.
+ @param The view to swipe, used for determining the points.
+  @param The direction to swipe.
+ @result A path of points, a point array.
+ */
++ (CGPoint*)swipePathForFlick:(UIView *)viewToSwipe direction:(KIFSwipeDirection)direction;
+
+/*!
+ @method typeIntoField:
+ @abstract A method to type the "text" into the view/element if UITextField.
+ @discussion The text is typed into the view/element.
+ @param The text to type.
+ @param The view/element to type into.
+ */
++ (void)typeIntoField:(NSString*)text view:(UIView*)view;
++ (void)typeIntoField:(NSString*)text element:(UIAccessibilityElement*)element;
+
+/*!
+ @method tapElementWithLabel:
+ @abstract A method to tap an element with "label"
+ @discussion The element with a label is tapped.
+ @param The label to use to search
+ */
++ (void)tapElementWithLabel:(NSString*)label;
+
+/*!
+ @method tapView
+ @abstract A method to tap a view.
+ @discussion The element with a label is tapped by accessing the view, and tapping a point in it.
+ @param The label to use to search, the view used to search
+ @result A KIF Result.
+ */
++ (KIFTestStepResult)tapView:(UIView *)view;
+
+/*!
+ @method tapElement:
+ @abstract A method to tap an element.
+ @discussion The element is tapped by accessing the view, and tapping a point in it.
+ @param The element used to search
+ @result A KIF Result.
+ */
++ (KIFTestStepResult)tapElement:(UIAccessibilityElement *)element;
+
+/*!
+ @method tapButton:
+ @abstract A method to tap a button with "label"
+ @discussion The button with a label is tapped by accessing the view, and tapping a point in it.
+ @param The label to use to search.
+ @result A KIF Result.
+ */
++ (KIFTestStepResult)tapButton:(NSString* )label;
+
+/*!
+ @method tapButton:failsIfNotPresent:
+ @abstract A method to tap a button with "label"
+ @discussion The button with a label is tapped by accessing the view, and tapping a point in it.
+ @param The label to use to search.
+ @param Bool to indicate if the method returns a failure if the button is not present.
+ @result A KIF Result.
+ */
++ (KIFTestStepResult)tapButton:(NSString* )label failsIfNotPresent:(BOOL)failsIfNotPresent;
+
+/*!
+ @method tapCharactersInString:
+ @abstract A method to tap characters in a string
+ @discussion Finds views for each character in a string, and taps it
+ @param The string to use.
+ @result A KIF Result.
+ */
++ (KIFTestStepResult)tapCharactersInString:(NSString *)string;
+/*
+ @method stepToClearFieldWithAccessibilityLabel:label:traits:expectedResult
+ @abstract A step that deletes the contents of an input field (ie TextField or TextView).
+ @discussion This step will get the view with the specified accessibility label and clear its contents using the Delete key.
+ @param label Accessibility label of the input view.
+ @param traits The accessibility traits of the element to type into. Elements that do not include at least these traits are ignored.
+ @param expectedResult What the text value should be after entry, including any formatting done by the field. If this is nil, the "text" parameter will be used.
+ @result A clear input field.
+ */
++ (id)stepToClearFieldWithAccessibilityLabel: (NSString *)label traits:(UIAccessibilityTraits)traits expectedResult:(NSString *)expectedResult;
+
+/*!
+ @method stepToClearFieldWithAccessibilityLabel:label:traits:expectedResult
+ @abstract A step that deletes the contents of an input field (ie TextField or TextView).
+ @discussion This step will get the view with the specified accessibility label and clear its contents using the Delete key.
+ @param label Accessibility label of the input view.
+ @result A clear input field.
+
+ */
++ (id)stepToClearFieldWithAccessibilityLabel: (NSString *)label; 
 
 @end

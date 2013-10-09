@@ -18,6 +18,7 @@
 - (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label;
 - (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label traits:(UIAccessibilityTraits)traits;
 - (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits;
+- (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
 
 /*!
  @method accessibilityElementMatchingBlock:
@@ -32,9 +33,15 @@
 - (UIView *)subviewWithClassNameOrSuperClassNamePrefix:(NSString *)prefix __deprecated;
 - (NSArray *)subviewsWithClassNameOrSuperClassNamePrefix:(NSString *)prefix;
 
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label;
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label traits:(UIAccessibilityTraits)traits;
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits;
+- (UIAccessibilityElement *)accessibilityElementWithLabelLike:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits class:(Class)class;
+
 - (void)flash;
 - (void)tap;
 - (void)tapAtPoint:(CGPoint)point;
+- (void)longPressAtPoint:(CGPoint)point duration:(NSTimeInterval)duration;
 
 /*!
  @method dragFromPoint:toPoint:
