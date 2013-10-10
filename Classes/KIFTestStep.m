@@ -896,9 +896,7 @@ typedef CGPoint KIFDisplacement;
                     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5, false);
                     KIFTestCondition(pickerView, error, @"Could not find Picker View to Tap");
                     // Tap in the middle of the picker view to select the item
-                    if ([self tapView:pickerView] == KIFTestStepResultFailure) {
-						return KIFTestStepResultFailure;
-					}
+                    KIFTestCondition([self tapView:pickerView withError:*error] != KIFTestStepResultFailure, error, @"Could not tap picker view");
                     
                     // The combination of selectRow:inComponent:animated: and tap does not consistently result in
                     // pickerView:didSelectRow:inComponent: being called on the delegate. We need to do it explicitly.
@@ -1293,7 +1291,8 @@ typedef CGPoint KIFDisplacement;
     KIFTestCondition([alertTitle isEqual:label], error, @"Current alert title didn't match search title. Expected '%@' but got '%@'", label, [alertView title]);
     KIFTestCondition((buttonIndex >= 0), error, @"Button with label '%@' not found", buttonLabel);
     
-    return (*error) ? KIFTestStepResultFailure : [self dismissAlertView:alertView withButtonAtIndex:buttonIndex];
+	KIFTestCondition((*error), error, @"There was an unspecified error that occurred, %@", (*error).debugDescription);
+    return [self dismissAlertView:alertView withButtonAtIndex:buttonIndex];
 }
 
 #pragma mark Private Methods
@@ -1594,9 +1593,9 @@ typedef CGPoint KIFDisplacement;
 	return swipePath;
 }
 
-+ (void)typeIntoField:(NSString*)text view:(UIView*)view
++ (void)typeIntoField:(NSString*)text view:(UIView*)view withError:(NSError*)error
 {
-	[self tapView:view];
+	[self tapView:view withError:error];
 	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5, false);
 	
 	for (NSUInteger characterIndex = 0; characterIndex < [text length]; characterIndex++) {
@@ -1615,13 +1614,13 @@ typedef CGPoint KIFDisplacement;
 	}
 }
 
-+ (void)typeIntoField:(NSString*)text element:(UIAccessibilityElement*)element
++ (void)typeIntoField:(NSString*)text element:(UIAccessibilityElement*)element withError:(NSError *)error
 {
     UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
-	[self typeIntoField:text view:view];
+	[self typeIntoField:text view:view withError:error];
 }
 
-+ (void)tapElementWithLabel:(NSString*)label;
++ (void)tapElementWithLabel:(NSString*)label  withError:(NSError*)error
 {
 	UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:label];
 	if (element)
@@ -1629,7 +1628,7 @@ typedef CGPoint KIFDisplacement;
 		UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
 		if (view)
 		{
-			[self tapView:view];
+			[self tapView:view withError:error];
 			CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1.0f, false);
 		}
 	}
@@ -1637,105 +1636,70 @@ typedef CGPoint KIFDisplacement;
 }
 
 
-+ (KIFTestStepResult)tapElement:(UIAccessibilityElement *)element
++ (KIFTestStepResult)tapElement:(UIAccessibilityElement *)element withError:(NSError*)error
 {
-	if (element) {
-		UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
-		if (view) {
-			return [self tapView:view];
-		}
-	}
-	
-	NSLog(@"The element was nil");
-	return KIFTestStepResultFailure;
+	KIFTestCondition(element, &error, @"The element was nil");
+	UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+	KIFTestCondition(view, &error, @"The view was nil");
+	return [self tapView:view withError:error];
 }
 
-+ (KIFTestStepResult)tapCharactersInString:(NSString *)string
++ (KIFTestStepResult)tapCharactersInString:(NSString *)string withError:(NSError*)error
 {
 	for (NSUInteger i = 0; i < [string length]; i++){
 		NSString *character = [NSString stringWithFormat:@"%c", [string characterAtIndex:i]];
         
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:character];
         //If the element is viewable (i.e. on current page) add it.
-        if (element) {
-            UIView *cell = [UIAccessibilityElement viewContainingAccessibilityElement:element];
-            if (cell) {
-                if ([self tapView:cell] == KIFTestStepResultFailure) {
-                    return KIFTestStepResultFailure;
-                }
-            } else {
-                return KIFTestStepResultFailure;
-            }
-        } else {
-            return KIFTestStepResultFailure;
-        }
+        KIFTestCondition(element, &error, @"Element was not found for character %@", character);
+		UIView *cell = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+		KIFTestCondition(cell, &error, @"Could not get cell for character %@", character);
+		KIFTestCondition([self tapView:cell withError:error] != KIFTestStepResultFailure, &error, @"Could not tap view for cell, trying to tap %@", character);
     }
     
     return KIFTestStepResultSuccess;
 }
 
-+ (KIFTestStepResult)tapView:(UIView *)view
++ (KIFTestStepResult)tapView:(UIView *)view withError:(NSError*)error
 {
-	if (view) {
-		// Tap button on screen, use frame, because KIF hates [view tap]
-		// If the accessibilityFrame is not set, fallback to the view frame.
-		CGRect elementFrame;
-		if (CGRectEqualToRect(CGRectZero, view.accessibilityFrame)) {
-			elementFrame.origin = CGPointZero;
-			elementFrame.size = view.frame.size;
-		} else {
-			elementFrame = [view.window convertRect:view.accessibilityFrame toView:view];
-		}
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5f, false);
-		CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
-		
-		// This is mostly redundant of the test in _accessibilityElementWithLabel:
-		if (!isnan(tappablePointInElement.x)) {
-			[view tapAtPoint:tappablePointInElement];
-		} else {
-			NSLog(@"Could not find tappable point in the Element");
-			return KIFTestStepResultFailure;
-		}
-		
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5f, false);
-		return KIFTestStepResultSuccess;
+	KIFTestCondition(view, &error, @"View was nil");
+	// Tap button on screen, use frame, because KIF hates [view tap]
+	// If the accessibilityFrame is not set, fallback to the view frame.
+	CGRect elementFrame;
+	if (CGRectEqualToRect(CGRectZero, view.accessibilityFrame)) {
+		elementFrame.origin = CGPointZero;
+		elementFrame.size = view.frame.size;
+	} else {
+		elementFrame = [view.window convertRect:view.accessibilityFrame toView:view];
 	}
+	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5f, false);
+	CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
+	KIFTestCondition(!isnan(tappablePointInElement.x), &error, @"Could not find tappable point in element");
+	[view tapAtPoint:tappablePointInElement];
 	
-	NSLog(@"The view was nil");
-	return KIFTestStepResultFailure;
+	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5f, false);
+	return KIFTestStepResultSuccess;
 }
 
-+ (KIFTestStepResult)tapButton:(NSString *)label
++ (KIFTestStepResult)tapButton:(NSString *)label withError:(NSError*)error
 {
-	return [self tapButton:label failsIfNotPresent:YES];
+	return [self tapButton:label failsIfNotPresent:YES withError:error];
 }
 
-+ (KIFTestStepResult)tapButton:(NSString* )label failsIfNotPresent:(BOOL)failsIfNotPresent
++ (KIFTestStepResult)tapButton:(NSString* )label failsIfNotPresent:(BOOL)failsIfNotPresent withError:(NSError*)error
 {
 	UIAccessibilityElement *buttonElement = [[UIApplication sharedApplication] accessibilityElementWithLabelLike:label accessibilityValue:nil traits:UIAccessibilityTraitButton];
 	if(buttonElement != nil) {
 		UIView *buttonView = [UIAccessibilityElement viewContainingAccessibilityElement:buttonElement];
 		if (buttonView.alpha > 0 || failsIfNotPresent) {
-			if(buttonView == nil) {
-				NSLog(@"Unable to find view for button: '%@'", label);
-				return KIFTestStepResultFailure;
-			}
+			KIFTestCondition(buttonView, &error, @"Unable to find view for button: '%@'", label);
 			
-			if (((UIButton *)buttonView).enabled) {
-				return [self tapView:buttonView];
-			} else {
-				NSLog(@"Button View %@ was not enabled, could not tap it.", label);
-				return KIFTestStepResultFailure;
-			}
+			KIFTestCondition(((UIButton *)buttonView).enabled, &error, @"Button View %@ was not enabled, could not tap it.", label);
+			return [self tapView:buttonView withError:error];
 		}
 	}
-	//If we get to this point, the element is not present.
-	if(failsIfNotPresent == NO) {
-		return KIFTestStepResultSuccess;
-	} else {
-		NSLog(@"Element was expected to be present, but was not");
-		return KIFTestStepResultFailure;
-	}
+	KIFTestCondition(failsIfNotPresent == NO, &error, @"Element was expected to be present, but was not");
+	return KIFTestStepResultSuccess;
 }
 
 + (id)stepToClearFieldWithAccessibilityLabel:(NSString *)label;
