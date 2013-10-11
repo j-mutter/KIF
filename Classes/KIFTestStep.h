@@ -627,8 +627,8 @@ typedef enum {
  @param The text to type.
  @param The view/element to type into.
  */
-+ (void)typeIntoField:(NSString*)text view:(UIView*)view withError:(NSError*)error;
-+ (void)typeIntoField:(NSString*)text element:(UIAccessibilityElement*)element withError:(NSError*)error;
++ (void)typeIntoField:(NSString*)text view:(UIView*)view error:(NSError**)error;
++ (void)typeIntoField:(NSString*)text element:(UIAccessibilityElement*)element error:(NSError**)error;
 
 /*!
  @method tapElementWithLabel:
@@ -636,7 +636,7 @@ typedef enum {
  @discussion The element with a label is tapped.
  @param The label to use to search
  */
-+ (void)tapElementWithLabel:(NSString*)label withError:(NSError*)error;;
++ (void)tapElementWithLabel:(NSString*)label error:(NSError**)error;
 
 /*!
  @method tapView
@@ -645,7 +645,7 @@ typedef enum {
  @param The label to use to search, the view used to search
  @result A KIF Result.
  */
-+ (KIFTestStepResult)tapView:(UIView *)view withError:(NSError*)error;
++ (KIFTestStepResult)tapView:(UIView *)view error:(NSError**)error;
 
 /*!
  @method tapElement:
@@ -654,7 +654,7 @@ typedef enum {
  @param The element used to search
  @result A KIF Result.
  */
-+ (KIFTestStepResult)tapElement:(UIAccessibilityElement *)element withError:(NSError*)error;;
++ (KIFTestStepResult)tapElement:(UIAccessibilityElement *)element error:(NSError**)error;
 
 /*!
  @method tapButton:
@@ -663,17 +663,7 @@ typedef enum {
  @param The label to use to search.
  @result A KIF Result.
  */
-+ (KIFTestStepResult)tapButton:(NSString* )label withError:(NSError*)error;
-
-/*!
- @method tapButton:failsIfNotPresent:
- @abstract A method to tap a button with "label"
- @discussion The button with a label is tapped by accessing the view, and tapping a point in it.
- @param The label to use to search.
- @param Bool to indicate if the method returns a failure if the button is not present.
- @result A KIF Result.
- */
-+ (KIFTestStepResult)tapButton:(NSString* )label failsIfNotPresent:(BOOL)failsIfNotPresent withError:(NSError*)error;
++ (KIFTestStepResult)tapButton:(NSString* )label error:(NSError**)error;
 
 /*!
  @method tapCharactersInString:
@@ -682,7 +672,7 @@ typedef enum {
  @param The string to use.
  @result A KIF Result.
  */
-+ (KIFTestStepResult)tapCharactersInString:(NSString *)string withError:(NSError*)error;
++ (KIFTestStepResult)tapCharactersInString:(NSString *)string error:(NSError**)error;
 /*
  @method stepToClearFieldWithAccessibilityLabel:label:traits:expectedResult
  @abstract A step that deletes the contents of an input field (ie TextField or TextView).
