@@ -432,19 +432,6 @@ typedef CGPoint KIFDisplacement;
             }
             return KIFTestStepResultWait;
         }
-
-        // If the accessibilityFrame is not set, fallback to the view frame.
-        CGRect elementFrame;
-        if (CGRectEqualToRect(CGRectZero, element.accessibilityFrame)) {
-            elementFrame.origin = CGPointZero;
-            elementFrame.size = view.frame.size;
-        } else {
-            elementFrame = [view.window convertRect:element.accessibilityFrame toView:view];
-        }
-        CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
-
-        // This is mostly redundant of the test in _accessibilityElementWithLabel:
-        KIFTestWaitCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
         [view tap];
 
         KIFTestCondition(![view canBecomeFirstResponder] || [view isDescendantOfFirstResponder], error, @"Failed to make the view %@ which contains the accessibility element \"%@\" into the first responder", view, label);
@@ -508,18 +495,8 @@ typedef CGPoint KIFDisplacement;
             return KIFTestStepResultWait;
         }
 		
-        CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:view];
-        CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
-		
-        // This is mostly redundant of the test in _accessibilityElementWithLabel:
-        KIFTestWaitCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
-        [view tapAtPoint:tappablePointInElement];
-		
-        KIFTestCondition(![view canBecomeFirstResponder] || [view isDescendantOfFirstResponder], error, @"Failed to make the view %@ which contains the accessibility element \"%@\" into the first responder", view, label);
-		
-        quiesceStartTime = [NSDate timeIntervalSinceReferenceDate];
-		
-        KIFTestWaitCondition(NO, error, @"Waiting for the view to settle.");
+        [view tap];
+		return KIFTestStepResultSuccess;
     }];
 }
 
@@ -576,7 +553,7 @@ typedef CGPoint KIFDisplacement;
 		
         // This is mostly redundant of the test in _accessibilityElementWithLabel:
         KIFTestWaitCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
-        [view tapAtPoint:tappablePointInElement];
+        [view tap];
 		
         KIFTestCondition(![view canBecomeFirstResponder] || [view isDescendantOfFirstResponder], error, @"Failed to make the view %@ which contains the accessibility element \"%@\" into the first responder", view, label);
 		
@@ -829,7 +806,7 @@ typedef CGPoint KIFDisplacement;
 		KIFTestWaitCondition(view, error, @"Cannot find view with accessibility label \"%@\"", label);
 		NSString *expected = [expectedString ? expectedString : expectedString stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
 		NSString *actual = [[view performSelector:@selector(text)] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-		KIFTestCondition([actual isEqualToString:expected], error, @"Failed to check text \"%@\" in field; instead, it was \"%@\"", expected, actual);
+		KIFTestCondition([actual isEqualToString:expected], error, @"Failed to check text \"%@\" in field %@; instead, it was \"%@\"", expected, label, actual);
         
         return KIFTestStepResultSuccess;
     }];
@@ -927,7 +904,7 @@ typedef CGPoint KIFDisplacement;
         
         // This is mostly redundant of the test in _accessibilityElementWithLabel:
         KIFTestCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
-        [switchView tapAtPoint:tappablePointInElement];
+        [switchView tap];
 
         // This is a UISwitch, so make sure it worked
         if (switchIsOn != switchView.on) {
