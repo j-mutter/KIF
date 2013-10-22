@@ -31,7 +31,7 @@ if (!(condition)) { \
     if (error) { \
         *error = [NSError errorWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:__VA_ARGS__], NSLocalizedDescriptionKey, nil]]; \
     } \
-    [self stepFailed]; \
+    [self stepFailed:error]; \
     return KIFTestStepResultFailure; \
 } \
 })
@@ -515,7 +515,7 @@ typedef KIFTestStepResult (^KIFTestStepExecutionBlock)(KIFTestStep *step, NSErro
  */
 + (id)stepToSimulateMemoryWarning;
 
-+ (void)stepFailed;
++ (void)stepFailed:(NSError **)error;
 
 /*!
  @method stepsToChoosePhotoInAlbum:atRow:column:

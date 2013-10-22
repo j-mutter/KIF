@@ -91,9 +91,9 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
-+ (void)stepFailed;
++ (void)stepFailed:(NSError **)error
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"KIFTestStepDidFail" object:self];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"KIFTestStepDidFail" object:*error];
     // Add a logging call here or set a breakpoint to debug failed KIFTestCondition calls
 }
 
@@ -713,13 +713,7 @@ typedef CGPoint KIFDisplacement;
         UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
 		((UITextField *)view).text = nil;
         KIFTestWaitCondition(view, error, @"Cannot find view with accessibility label \"%@\"", label);
-                
-        CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:view];
-        CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
-		
-        // This is mostly redundant of the test in _accessibilityElementWithLabel:
-        KIFTestCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
-        [view tapAtPoint:tappablePointInElement];
+        [view tap];
         
         KIFTestWaitCondition([view isDescendantOfFirstResponder], error, @"Failed to make the view with accessibility label \"%@\" the first responder. First responder is %@", label, [[[UIApplication sharedApplication] keyWindow] firstResponder]);
         
@@ -774,13 +768,7 @@ typedef CGPoint KIFDisplacement;
         UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
 		((UITextField *)view).text = nil;
         KIFTestWaitCondition(view, error, @"Cannot find view with accessibility label \"%@\"", label);
-		
-        CGRect elementFrame = [view.window convertRect:element.accessibilityFrame toView:view];
-        CGPoint tappablePointInElement = [view tappablePointInRect:elementFrame];
-        
-        // This is mostly redundant of the test in _accessibilityElementWithLabel:
-        KIFTestCondition(!isnan(tappablePointInElement.x), error, @"The element with accessibility label %@ is not tappable", label);
-        [view tapAtPoint:tappablePointInElement];
+        [view tap];
         
         KIFTestWaitCondition([view isDescendantOfFirstResponder], error, @"Failed to make the view with accessibility label \"%@\" the first responder", label);
         
@@ -1297,9 +1285,9 @@ typedef CGPoint KIFDisplacement;
 
 #pragma mark Private Methods
 
-- (void)stepFailed;
+- (void)stepFailed:(NSError **)error;
 {
-    [[self class] stepFailed];
+    [[self class] stepFailed:error];
 }
 
 
@@ -1654,7 +1642,7 @@ typedef CGPoint KIFDisplacement;
         KIFTestCondition(element, error, @"Element was not found for character %@", character);
 		UIView *cell = [UIAccessibilityElement viewContainingAccessibilityElement:element];
 		KIFTestCondition(cell, error, @"Could not get cell for character %@", character);
-		KIFTestCondition([self tapView:cell error:error] != KIFTestStepResultFailure, error, @"Could not tap view for cell, trying to tap %@", character);
+		[cell tap];
     }
     
     return KIFTestStepResultSuccess;
